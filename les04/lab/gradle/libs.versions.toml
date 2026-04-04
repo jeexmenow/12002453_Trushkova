@@ -1,0 +1,15 @@
+# https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
+
+[versions]
+junit-jupiter = "5.11.1"
+spring = "6.2.2"
+aspectj = "1.9.22.1"
+jakarta-annotation = "2.1.1"
+
+[libraries]
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+spring-context = { module = "org.springframework:spring-context", version.ref = "spring" }
+spring-aspects = { module = "org.springframework:spring-aspects", version.ref = "spring" }
+spring-test = { module = "org.springframework:spring-test", version.ref = "spring" }
+aspectj-weaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectj" }
+jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }

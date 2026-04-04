@@ -1,33 +1,54 @@
-# Лабораторная работа № 6 — JDBC и встраиваемая БД H2
+# Отчёт: лабораторная работа 6 (les06/lab)
 
-## Цель
+## Кратко: JDBC и Spring JDBC
 
-Подключить к приложению магазина зоотоваров встраиваемую СУБД H2 через `EmbeddedDatabaseBuilder`, описать таблицы `CATEGORIES` и `PRODUCTS` с внешним ключом, загрузить данные из CSV в БД (`DataBaseRenderer`, `JdbcTemplate`) и выполнить выборку категорий с числом товаров больше одного с выводом результата в консоль через Logback (уровень `INFO`).
+**JDBC (Java Database Connectivity)** — стандартный API для работы с реляционными СУБД из Java: подключение к БД, выполнение SQL, обход результата `ResultSet`.
 
-## Запуск
+В **Spring** типичный стек для «ручного» SQL без JPA:
 
-Из каталога `les06/lab`:
+- **`DataSource`** — фабрика соединений с БД (в работе — встраиваемая H2 через **`EmbeddedDatabaseBuilder`**);
+- **`JdbcTemplate`** — обёртка над JDBC, упрощает `UPDATE`/`INSERT`/`query`, меньше шаблонного кода;
+- **`RowMapper`** — сопоставление одной строки `ResultSet` с объектом домена (в работе — `CategoryMultiProductRowMapper` → `CategoryProductSummary`).
 
-```bash
-./gradlew run
-```
+**H2** в режиме embedded позволяет поднять БД в памяти процесса без отдельного сервера; скрипт `schema.sql` выполняется при инициализации `DataSource`.
 
-или
+**Logback** (`ch.qos.logback:logback-classic`) подключается как реализация **SLF4J** и используется для вывода результатов запроса на уровне **`INFO`** в консоль. Конфигурация — `app/src/main/resources/logback.xml`.
 
-```bash
-gradle run
-```
+Сборка по-прежнему на **Gradle** (wrapper `gradlew` / `gradlew.bat`); обзор задач и установки — в [руководстве по установке Gradle](https://docs.gradle.org/current/userguide/installation.html) и [примере Java Application](https://docs.gradle.org/current/samples/sample_building_java_applications.html).
 
-Корневой проект делегирует задачу `:app:run`. Альтернатива: `./gradlew :app:run`.
+Подключённые артефакты (см. `gradle/libs.versions.toml`): **`org.springframework:spring-context:6.2.2`**, **`org.springframework:spring-jdbc:6.2.2`**, **`com.h2database:h2:2.3.232`**, **`ch.qos.logback:logback-classic:1.5.16`**.
 
-## Структура
+## Цель работы
 
-- `app/src/main/resources/schema.sql` — создание таблиц `CATEGORIES`, `PRODUCTS` и ограничение `FOREIGN KEY`.
-- `app/src/main/resources/category.csv`, `product.csv` — исходные данные.
-- `LabConfiguration` — бин `DataSource` (`EmbeddedDatabaseBuilder` + H2 + выполнение `schema.sql`), `JdbcTemplate`, провайдеры CSV, рендерер по умолчанию `DataBaseRenderer`, `CategoryRequest`.
-- `CategoryRequest` — SQL-запрос с `GROUP BY` / `HAVING COUNT(...) > 1` и `RowMapper` для разбора строк результата.
+Продолжить приложение магазина зоотоваров на **Spring** с **Java-конфигурацией**: подключить встраиваемую **H2** через **`EmbeddedDatabaseBuilder`**, создать таблицы **`CATEGORIES`** и **`PRODUCTS`** с **внешним ключом**, загрузить данные из **CSV** в БД (**`DataBaseRenderer`**, **`JdbcTemplate`**), выполнить SQL-запрос категорий с **числом товаров больше 1** (**`CategoryRequest`**, **`RowMapper`**) и вывести результат в консоль через **Logback** (`INFO`). Запуск — **`gradle run`**.
 
-## UML-диаграмма классов (Mermaid)
+## Выполнение
+
+### Структура проекта
+
+- Корень Gradle: `les06/lab` (имя сборки **product-table**, подпроект **`app`**); в корне добавлена задача **`run`**, делегирующая **`:app:run`**.
+- Исходный код: `app/src/main/java/ru/bsuedu/cad/lab/`; реализации — пакет **`ru.bsuedu.cad.lab.impl`**.
+- Данные: `app/src/main/resources/product.csv`, **`category.csv`**.
+- Схема БД: **`app/src/main/resources/schema.sql`** (выполняется при старте встроенной БД).
+
+База для кода — результат **лабораторной работы № 2** (`les02/lab`): те же роли `Reader` / `Parser` / `ProductProvider` / `Renderer` для товаров; добавлены сущность **категории**, второй CSV и слой JDBC.
+
+### Диаграмма классов (реализация)
+
+| Роль | Интерфейс | Реализация |
+|------|-----------|------------|
+| Чтение файла | `Reader` | `ResourceFileReader` — два бина: `productReader` / `categoryReader` (разделение через `@Qualifier`) |
+| Разбор CSV товаров | `Parser` | `CSVParser` — строки в `List<Product>` |
+| Разбор CSV категорий | `CategoryParser` | `CategoryCSVParser` — строки в `List<Category>` (общий разбор кавычек — `CSVParser.splitCsvLine`) |
+| Список товаров | `ProductProvider` | `ConcreteProductProvider` |
+| Список категорий | `CategoryProvider` | `ConcreteCategoryProvider` |
+| Вывод (по умолчанию) | `Renderer` | **`DataBaseRenderer`** — вставка категорий и товаров в БД через `JdbcTemplate` |
+| Вывод (альтернатива из лаб. 2) | `Renderer` | `ConsoleTableRenderer` — таблица в консоль (в конфигурации по заданию не используется как основной рендерер) |
+| Сущность «товар» | `Product` | без изменений по смыслу лаб. 2 |
+| Сущность «категория» | `Category` | `categoryId`, `name`, `description` |
+| Запрос к БД | — | **`CategoryRequest`** + **`CategoryMultiProductRowMapper`** → **`CategoryProductSummary`** (record) |
+
+### Диаграмма классов (UML, Mermaid)
 
 ```mermaid
 classDiagram
@@ -180,6 +201,44 @@ classDiagram
     CategoryProvider ..> Category : supplies
 ```
 
-## Ожидаемый вывод
+### База данных и SQL
 
-После загрузки данных в БД в логе уровня `INFO` отображается сводка от `DataBaseRenderer`, затем — результат запроса `CategoryRequest`: категории, в которых больше одного товара (для текущих CSV это категория «Средства ухода», `category_id = 5`, два товара).
+Таблица **`CATEGORIES`** — справочник категорий; **`PRODUCTS`** — товары со ссылкой **`category_id`** на **`CATEGORIES`** (`FOREIGN KEY`). Порядок загрузки данных в приложении: сначала категории, затем товары (ограничение ссылочной целостности).
+
+Запрос в **`CategoryRequest`**: соединение `categories` и `products`, агрегация **`COUNT`**, отбор **`HAVING COUNT(...) > 1`**.
+
+### Spring (Java-конфигурация)
+
+Класс **`LabConfiguration`** — `@Configuration`: бины **`DataSource`** (`EmbeddedDatabaseBuilder`, H2, `classpath:schema.sql`), **`JdbcTemplate`**, читатели CSV, парсеры, провайдеры, бин **`renderer`** → **`DataBaseRenderer`** (используется **по умолчанию**), **`CategoryRequest`**.
+
+Точка входа **`App`**: контекст `AnnotationConfigApplicationContext(LabConfiguration.class)` → **`renderer.render()`** (загрузка CSV в БД) → **`categoryRequest.execute()`** (запрос и лог `INFO`).
+
+### Запуск
+
+Из каталога `les06/lab`:
+
+```bash
+.\gradlew.bat run
+```
+
+или (если в PATH есть Gradle 8.12+ и настроены `JAVA_HOME` / JDK 17):
+
+```bash
+gradle run
+```
+
+Сборка и тесты:
+
+```bash
+.\gradlew.bat build
+```
+
+Для корректного отображения **кириллицы** в стандартной консоли Windows может понадобиться UTF-8, например **`chcp 65001`** перед запуском или терминал вроде **Windows Terminal** с UTF-8.
+
+### Ожидаемый вывод
+
+После вставки данных в логе **`INFO`**: сообщение от **`DataBaseRenderer`** о числе загруженных категорий и товаров; затем результат **`CategoryRequest`** — категории с **более чем одним** товаром (для текущих CSV: **«Средства ухода»**, `category_id = 5`, два товара).
+
+## Выводы
+
+Освоены **`EmbeddedDatabaseBuilder`** и встраиваемая **H2**, описание схемы через **SQL** и **внешний ключ** между **`PRODUCTS`** и **`CATEGORIES`**. Для доступа к БД использованы **`DataSource`**, **`JdbcTemplate`** и **`RowMapper`**. Данные из CSV по-прежнему отделены от «представления»: новая роль **`DataBaseRenderer`** переносит их в таблицы; **`CategoryRequest`** демонстрирует выборку с группировкой и фильтром по **`HAVING`**, вывод через **Logback** на уровне **`INFO`**.

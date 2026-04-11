@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание заказа</title>
+</head>
+<body>
+<h1>Создать заказ</h1>
+<p><a th:href="@{/orders}">К списку заказов</a></p>
+
+<p th:if="${error != null}" th:text="${error}" style="color:red;">Ошибка</p>
+
+<form th:action="@{/orders/new}" th:object="${form}" method="post">
+    <p>
+        <label>Клиент:</label><br>
+        <select th:field="*{customerId}" required>
+            <option th:each="c : ${customers}" th:value="${c.id()}" th:text="${c.name()}"></option>
+        </select>
+    </p>
+
+    <p>
+        <label>Товар:</label><br>
+        <select th:field="*{productId}" required>
+            <option th:each="p : ${products}"
+                    th:value="${p.id()}"
+                    th:text="${p.name() + ' (остаток: ' + p.stockQuantity() + ')'}"></option>
+        </select>
+    </p>
+
+    <p>
+        <label>Количество:</label><br>
+        <input type="number" min="1" th:field="*{quantity}" required>
+    </p>
+
+    <p>
+        <label>Адрес доставки:</label><br>
+        <input type="text" th:field="*{shippingAddress}" required>
+    </p>
+
+    <button type="submit">Создать</button>
+</form>
+</body>
+</html>

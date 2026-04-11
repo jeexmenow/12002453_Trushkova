@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Изменение заказа</title>
+</head>
+<body>
+<h1 th:text="'Изменение заказа #' + ${orderId}">Изменение заказа</h1>
+<p><a th:href="@{/orders}">К списку заказов</a></p>
+
+<form th:action="@{/orders/{id}/edit(id=${orderId})}" th:object="${form}" method="post">
+    <p>
+        <label>Адрес доставки:</label><br>
+        <input type="text" th:field="*{shippingAddress}" required>
+    </p>
+    <p>
+        <label>Статус:</label><br>
+        <input type="text" th:field="*{status}" required>
+    </p>
+    <button type="submit">Сохранить</button>
+</form>
+</body>
+</html>

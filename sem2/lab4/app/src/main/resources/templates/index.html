@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Список дел</title>
+    <link rel="stylesheet" th:href="@{/css/tasks.css}">
+</head>
+<body>
+<main class="sheet">
+    <div class="session">
+        <p>
+            Вы вошли как
+            <strong sec:authentication="name">user</strong>
+        </p>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-quiet">Выйти</button>
+        </form>
+    </div>
+
+    <header class="mast">
+        <p class="eyebrow">ToDo Tracker</p>
+        <h1>Список дел</h1>
+        <p class="stats">
+            В работе
+            <strong th:text="${#lists.size(tasks.?[completed == false])}">0</strong>
+            <span class="dot">·</span>
+            Готово
+            <strong th:text="${#lists.size(tasks.?[completed])}">0</strong>
+        </p>
+        <p class="note">Задачи хранятся в PostgreSQL. Сменить статус могут редактор и модератор. Удалить задачу может только модератор.</p>
+    </header>
+
+    <section class="composer">
+        <h2>Новая задача</h2>
+        <form th:action="@{/addTask}" method="post">
+            <label for="description">Описание</label>
+            <input type="text" id="description" name="description" required placeholder="Например, подготовить отчёт">
+            <button type="submit" class="btn btn-primary">Добавить</button>
+        </form>
+    </section>
+
+    <section class="board">
+        <h2>Задачи</h2>
+        <p class="empty" th:if="${tasks.isEmpty()}">Пока пусто. Добавьте первую задачу сверху.</p>
+        <ul class="tasks" th:if="${!tasks.isEmpty()}">
+            <li th:each="task : ${tasks}"
+                th:classappend="${task.completed} ? 'task task-done' : 'task'">
+                <div class="task-body">
+                    <h3 th:text="${task.description}">Описание</h3>
+                    <p th:text="${task.owner != null ? 'Автор: ' + task.owner.name : 'Автор не указан'}">Автор</p>
+                </div>
+                <p class="status" th:text="${task.completed} ? 'Готово' : 'В работе'">В работе</p>
+                <div class="actions">
+                    <form th:action="@{/updateTask/{id}(id=${task.id})}" method="post">
+                        <input type="hidden" name="completed" th:value="${!task.completed}">
+                        <button type="submit" class="btn btn-quiet"
+                                th:text="${task.completed} ? 'Вернуть' : 'Отметить готовой'">Отметить готовой</button>
+                    </form>
+                    <a class="btn btn-danger" th:href="@{/deleteTask/{id}(id=${task.id})}">Удалить</a>
+                </div>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

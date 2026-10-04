@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход</title>
+    <link rel="stylesheet" th:href="@{/css/tasks.css}">
+</head>
+<body>
+<main class="sheet">
+    <p class="eyebrow">ToDo Tracker</p>
+    <h1>Вход</h1>
+    <p class="note" th:if="${param.error}">Неверный логин или пароль.</p>
+    <p class="note" th:if="${param.logout}">Вы вышли из приложения.</p>
+
+    <form class="login" th:action="@{/login}" method="post">
+        <label for="username">Логин</label>
+        <input type="text" id="username" name="username" required autofocus>
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+
+    <ul class="accounts">
+        <li><strong>user</strong> / password — добавляет задачи</li>
+        <li><strong>editor</strong> / password — ещё меняет статус</li>
+        <li><strong>moderator</strong> / password — ещё и удаляет</li>
+    </ul>
+</main>
+</body>
+</html>

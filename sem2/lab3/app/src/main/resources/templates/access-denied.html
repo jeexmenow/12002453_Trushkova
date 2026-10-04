@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Недостаточно прав</title>
+    <link rel="stylesheet" th:href="@{/css/tasks.css}">
+</head>
+<body>
+<main class="sheet">
+    <p class="eyebrow">ToDo Tracker</p>
+    <h1>Недостаточно прав</h1>
+    <p class="note">Это действие доступно другой роли. Пользователь может только добавлять задачи, редактор меняет статус, модератор ещё и удаляет.</p>
+    <p><a class="btn btn-primary" th:href="@{/}">К списку</a></p>
+</main>
+</body>
+</html>
